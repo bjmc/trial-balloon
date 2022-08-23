@@ -1,104 +1,147 @@
-# Democracy Club interview task
+# Trial Balloon
 
-This is a task designed to see how you think through complex problems.
+[*Trial Balloon*](https://en.wikipedia.org/wiki/Trial_balloon) is a Python helper library for easily generating and validating response data and documentation for Democracy Club APIs.
 
-The task is typical of some higher level problems we think about at DC, and
-doesn't have a single correct solution.
+## Layout
 
-There are some drawbacks that we understand about any code test: in a typical
-job complex tasks are in context of familiar applications or domains. You will
-normally have a good idea of how the task fits into other tasks, and you will
-know more about how the code might be used and maintained over time.
+This repository contains [Pydantic](https://pydantic-docs.helpmanual.io/) models in the `trial_balloon/models` directory that are the ultimate source of truth. These define the format and structure of the API responses. The `trial_balloon/schemas/` directory contains [JSON Schema](https://json-schema.org/) documentation generated from these models, and in `trial_balloon/examples/` you will find static JSON output, also generated with the help of these models and validated against them.
 
-We understand this and will take the limitations of the test into account as we
-read over the implementations.
+The `trial_balloon/fixtures/` directory contains the Python objects that produce these examples, but they can also be imported and used directly.
 
-We do expect high quality code that is tested. It's better to complete a part of
-the project with high quality code than to technically finish the entire test
-without any form of testing in place. We have provided a working set of
-tests to help you with this.
+## Usage
 
-It would be nice to at least have a working proof of concept, but as important
-is some description of how you're thinking about the problem and what you might
-do differently if you had longer or could change some parameters.
+Trial Balloon can be installed as a Python package and the models and fixtures can be imported and used directly in Python software or tests. Alternatively, for non-Python projects, the static JSON examples can be used directly. To make it easier to keep the examples current, maintainers may want to add this repository as a [git submodule](https://github.blog/2016-02-01-working-with-submodules/) to their own project, or regularly update as part of a continuous integration pipeline.
 
-## The background
+### As a Python package
 
-In this repo you will see a python file `src/main.py` and some JSON in
-`sandbox_responses`.
+Install via pip (or [`poetry add`](https://python-poetry.org/docs/basic-usage/#specifying-dependencies))
+```bash
+pip install -i https://test.pypi.org/simple/ trial-balloon
+```
 
-`main.py` is an example consumer of one of the APIs that we
-maintain. The sandbox JSON represents example responses from the API.
+Then you can import fixtures and use them directly in tests. `FIXTURES_BY_NAME` is provided for convenience.
 
-These objects represent the information we know about elections that are taking
-place. The set that is returned may be determined by a variety of factors, eg
-date or location.
 
-The examples are important as there are many cases that only show up in the live
-API occasionally, for example, we need to ensure that our code works for general
-elections, however there are limited times when the actual API will show one.
+```python
+import pytest
+from trial_balloon.fixtures import FIXTURES_BY_NAME
 
-For some of our data (polling stations) we only have content in the database
-just before elections, and never return a station for a postcode if there aren’t
-upcoming elections. This means we need to rely on the examples rather than live
-or staging APIs.
+from sample_client import client
 
-You don't need to understand everything about the response, however the most
-important thing to know is that the valid (non-error) data returned can change
-depending on a number of factors:
+@patch('sample_client.requests')
+def test_call_api(fake_requests):
+    fake_requests.get().json() = FIXTURES_BY_NAME['westminster'].dict()
+    resp = client.get_postcode()
+    assert resp['dates'] == []
+```
 
-For a given query, there can be any number of ballots from 0 to ~4 over a number
-of dates.
+If using a web framework that supports integration with Pydantic (such as [FastAPI](https://fastapi.tiangolo.com/) or Django via [Django-Ninja](https://django-ninja.rest-framework.com/)) you could also use these models directly in the application:
 
-* For each ballot, there can be any number of candidates from 0 to 10 or more
-* For each ballot there can be exactly one of a known number of voting systems
-* For each date there can be a polling station known, or not
-* Every object (including sub-objects) have a number of additional fields
+```python
+from ninja import NinjaAPI
+from trial_balloon.models.postcode_search import RootModel as PostcodeSearchResults
 
-In short, the API response is a complex set of nested objects.
+from polling_station.models import PostcodeDetails
 
-If you did want to learn more about the data model, you can do so here:
+api = NinjaAPI()
 
-https://developers.democracyclub.org.uk/api/v1/
+@api.get("/postcodes/{postcode}", response=PostcodeSearchResults)
+def get_by_postcode(request, postcode: str):
+    details = PostcodeDetails.objects.get(postcode==postcode)
+    return details
 
-This isn't really part of the test though, and you can work on the problem 
-without a full understanding of the domain. 
+```
 
-## The problem
+### As static JSON files
 
-The sandbox responses are duplicated across projects and managed in an ad hoc 
-fashion as separate json file. The responses are used in a number of ways:
+You can download the example JSON files directly from Github, either individually or [in a bundle as a tagged archive](https://github.com/DemocracyClub/interview-test-brendan/tags), 
 
-* As fixtures in tests across different projects
-* As mock data used by projects that showcase our work between elections (e.g 
-  to see feature X, type in postcode Y)
+```bash
+curl https://github.com/DemocracyClub/interview-test-brendan/archive/refs/tags/v0.1.0a.tar.gz | tar -zx interview-test-brendan-0.1.0a/trial_balloon/examples/ --strip-components=2
+```
 
-Because they are complex, adding new fields can be laborious, and it can be hard
-to validate that the sample data is actually the same as the live API would
-produce.
+You could also clone the entire repository, or even add it as [a git submodule](https://git-scm.com/book/en/v2/Git-Tools-Submodules) inside your own project's repository
 
-We need a better way to manage this data that allows us to add more fields, add
-more example scenarios, and ensure it is valid output. This system needs to work
-with more than one internal project and ideally help us with documentation.
+```bash
+git submodule add git@github.com:DemocracyClub/interview-test-brendan.git trial_balloon
+```
 
-## The task
+## Development
 
-We want to know how you would go about solving the problem, both in terms of the
-code you'd write and the way you would maintain a common, validated data
-structure over more than one project.
+### Setup
 
-We're looking for some working code that provides a minimum example with a
-nested data structure like the sandbox examples. You don't have to implement the
-entire structure, as we'd rather have a more complete solution on a smaller
-model.
+Trial Balloon uses [Poetry](https://python-poetry.org/) for packaging and dependency management. Once you already have [Poetry itself installed](https://python-poetry.org/docs/#installation), you can run...
 
-The code should be usable for testing `main.py`’s functionality. Changing `main.py`
-to be easier to test is an option, as the priority is maintainability of code
-and data structures across projects.
+```bash
+poetry install
+```
 
-As well as code, we would like your thoughts on the tradeoffs your approach
-would have in real projects. Ideally you would include some idea of alternative
-approaches and why you didn't pick them
+...to install all required Python dependencies inside a [virtualenv](https://docs.python.org/3/library/venv.html), isolated from your system Python.
 
-You should submit your answer via a pull request to this repo, with code in the
-commit and commentary in the PR description.
+If your system has `make` available, there is a Makefile in the root of the repository with several helpful commands, but these are optional.
+
+### Workflow
+
+**To add a new field**
+
+Find the model you need to update in `trial_balloon/models/` edit and make the changes there. Refer to the [Pydantic usage docs](https://pydantic-docs.helpmanual.io/usage/models/), if needed. Once you're satisfied, in the project root you can run:
+
+```bash
+make schemas   # To update schemas
+make examples  # To update examples
+make all       # To update both
+```
+
+**To add or change a fixture**
+
+Find the fixture you want to edit (or create a new one) in `trial_balloon/fixtures/`. Once you've made the changes, you can run...
+
+```bash
+make examples
+```
+
+to re-generate the JSON examples, including your own new one.
+
+**Tidy up**
+
+Review your changes with `git diff`, you can also run
+
+```bash
+make format # To automatically format your Python code.
+make lint   # To run static analysis tools and check your code for glitches.
+make test   # To run tests using your models/fixtures against a sample client app.
+```
+
+*Note that the local test suite passing, doesn't guarantee your changes are non-breaking for all possible consumers of this library.* Be sure to tag and version any breaking changes appropriately (see below).
+
+Once you're happy with the changes, make sure to commit both the modified Python code and the static JSON folders.
+
+### Publish
+
+#### Prerequisites
+
+You'll need to register an accont and generate an API token for PyPI or [Test PyPI](https://test.pypi.org/manage/account/#api-tokens) (the steps below show test PyPI, adapted from [this SO answer](https://stackoverflow.com/q/68882603/845210)) to configure your local environment:
+
+```bash
+poetry config repositories.testpypi https://test.pypi.org/legacy/
+poetry config pypi-token.testpypi pypi-TOKEN...
+```
+
+#### Creating a release
+
+Update the version string in `pyproject.toml` Please follow [semantic versioning](https://semver.org/): if you have made breaking changes, increment the major version number. Add a git tag for the new verson:
+
+```bash
+git tag 'v0.1.1'
+git push origin --tags
+```
+
+Then, run
+
+```bash
+make dist
+poetry publish -r testpypi
+```
+
+to publish the new version to PyPI.
+

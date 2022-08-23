@@ -1,0 +1,1070 @@
+{
+  "title": "RootModel",
+  "type": "object",
+  "properties": {
+    "address_picker": {
+      "title": "Address Picker",
+      "description": "True if we need to show this user an address picker",
+      "default": false,
+      "type": "boolean"
+    },
+    "addresses": {
+      "title": "Addresses",
+      "description": "An array of address objects containing the addresses applicable to this request (if necessary)",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Address"
+      }
+    },
+    "dates": {
+      "title": "Dates",
+      "description": "An array of date objects (each describing a date on which an election or poll will take place) containing details of relevant ballots, candidates and polling station information",
+      "default": [],
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Date"
+      }
+    },
+    "electoral_services": {
+      "title": "Electoral Services",
+      "description": "Contact details for the user's local Electoral Services team. If we do not know the user's polling station, this can be used to provide contact info for their local council. This may be `null` if we are not able to determine the user's council.",
+      "allOf": [
+        {
+          "$ref": "#/definitions/ElectoralServices"
+        }
+      ]
+    },
+    "registration": {
+      "title": "Registration",
+      "description": "Sometimes the contact information for registration and proxy voting is different to the electoral services contact details. Use these if they exist and your users might have questions about voter registration. If this key is null, assume the electoral services contact details can be used for electoral registration related enquiries.",
+      "allOf": [
+        {
+          "$ref": "#/definitions/Registration"
+        }
+      ]
+    },
+    "postcode_location": {
+      "title": "Postcode Location",
+      "description": "A [GeoJSON Feature](https://tools.ietf.org/html/rfc7946#section-3.2) containing a [Point object](https://tools.ietf.org/html/rfc7946#section-3.1.2) describing the centroid of the input postcode. If providing a map or directions for a polling station journey, use this as the start point. This may be `null` if we are not able to accurately geocode.",
+      "allOf": [
+        {
+          "$ref": "#/definitions/Feature_Point__Dict_"
+        }
+      ]
+    }
+  },
+  "required": [
+    "addresses"
+  ],
+  "definitions": {
+    "Address": {
+      "title": "Address",
+      "type": "object",
+      "properties": {
+        "address": {
+          "title": "Address",
+          "type": "string"
+        },
+        "postcode": {
+          "title": "Postcode",
+          "type": "string"
+        },
+        "slug": {
+          "title": "Slug",
+          "type": "string"
+        },
+        "url": {
+          "title": "Url",
+          "description": "Call this URL to get data for this registered address",
+          "type": "string"
+        }
+      },
+      "required": [
+        "address",
+        "postcode",
+        "slug",
+        "url"
+      ]
+    },
+    "Point": {
+      "title": "Point",
+      "description": "Point Model",
+      "type": "object",
+      "properties": {
+        "coordinates": {
+          "title": "Coordinates",
+          "anyOf": [
+            {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": [
+                {
+                  "anyOf": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "integer"
+                    }
+                  ]
+                },
+                {
+                  "anyOf": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "integer"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "array",
+              "minItems": 3,
+              "maxItems": 3,
+              "items": [
+                {
+                  "anyOf": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "integer"
+                    }
+                  ]
+                },
+                {
+                  "anyOf": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "integer"
+                    }
+                  ]
+                },
+                {
+                  "anyOf": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "integer"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "type": {
+          "title": "Type",
+          "const": "Point",
+          "type": "string"
+        }
+      },
+      "required": [
+        "coordinates"
+      ]
+    },
+    "StationProperties": {
+      "title": "StationProperties",
+      "type": "object",
+      "properties": {
+        "postcode": {
+          "title": "Postcode",
+          "description": "Postcode for this polling station",
+          "type": "string"
+        },
+        "address": {
+          "title": "Address",
+          "description": "Address for this polling station",
+          "type": "string"
+        }
+      },
+      "required": [
+        "postcode",
+        "address"
+      ]
+    },
+    "Station": {
+      "title": "Station",
+      "description": "Feature Model",
+      "type": "object",
+      "properties": {
+        "type": {
+          "title": "Type",
+          "const": "Feature",
+          "type": "string"
+        },
+        "geometry": {
+          "title": "Geometry",
+          "description": "A GeoJSON [Point object](https://tools.ietf.org/html/rfc7946#section-3.1.2) object describing the location of this polling station. Optionally null if we know the address only but can't geocode a location.",
+          "allOf": [
+            {
+              "$ref": "#/definitions/Point"
+            }
+          ]
+        },
+        "properties": {
+          "$ref": "#/definitions/StationProperties"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "bbox": {
+          "title": "Bbox",
+          "anyOf": [
+            {
+              "type": "array",
+              "minItems": 4,
+              "maxItems": 4,
+              "items": [
+                {
+                  "anyOf": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "integer"
+                    }
+                  ]
+                },
+                {
+                  "anyOf": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "integer"
+                    }
+                  ]
+                },
+                {
+                  "anyOf": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "integer"
+                    }
+                  ]
+                },
+                {
+                  "anyOf": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "integer"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "array",
+              "minItems": 6,
+              "maxItems": 6,
+              "items": [
+                {
+                  "anyOf": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "integer"
+                    }
+                  ]
+                },
+                {
+                  "anyOf": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "integer"
+                    }
+                  ]
+                },
+                {
+                  "anyOf": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "integer"
+                    }
+                  ]
+                },
+                {
+                  "anyOf": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "integer"
+                    }
+                  ]
+                },
+                {
+                  "anyOf": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "integer"
+                    }
+                  ]
+                },
+                {
+                  "anyOf": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "integer"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "required": [
+        "properties",
+        "id"
+      ]
+    },
+    "PollingStation": {
+      "title": "PollingStation",
+      "type": "object",
+      "properties": {
+        "polling_station_known": {
+          "title": "Polling Station Known",
+          "description": "Do we know where this user should vote?",
+          "type": "boolean"
+        },
+        "custom_finder": {
+          "title": "Custom Finder",
+          "description": "If we don't know a user's polling station, sometimes we can provide the URL of another polling station finder. This will always be populated for users in Northern Ireland where Electoral Office for Northern Ireland run their own service.",
+          "type": "string"
+        },
+        "report_problem_url": {
+          "title": "Report Problem Url",
+          "description": "If we provide a polling station result, this URL may be used to provide a user with a back-channel to report inaccurate data.",
+          "type": "string"
+        },
+        "station": {
+          "title": "Station",
+          "description": "A [GeoJSON Feature](https://tools.ietf.org/html/rfc7946#section-3.2) describing the user's polling station (if known)",
+          "allOf": [
+            {
+              "$ref": "#/definitions/Station"
+            }
+          ]
+        }
+      },
+      "required": [
+        "polling_station_known",
+        "custom_finder",
+        "report_problem_url"
+      ]
+    },
+    "AdvanceVotingStation": {
+      "title": "AdvanceVotingStation",
+      "type": "object",
+      "properties": {
+        "name": {
+          "title": "Name",
+          "description": "The name of the Advance Voting Station",
+          "type": "string"
+        },
+        "address": {
+          "title": "Address",
+          "description": "The address of the Advance Voting Station",
+          "type": "string"
+        },
+        "postcode": {
+          "title": "Postcode",
+          "description": "The postcode of the Advance Voting Station",
+          "type": "string"
+        },
+        "location": {
+          "title": "Location",
+          "description": "A GeoJSON [Point object](https://tools.ietf.org/html/rfc7946#section-3.1.2) object describing the location of this Advance Voting Station.",
+          "allOf": [
+            {
+              "$ref": "#/definitions/Point"
+            }
+          ]
+        },
+        "opening_times": {
+          "title": "Opening Times",
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {}
+          }
+        }
+      },
+      "required": [
+        "name",
+        "address",
+        "postcode",
+        "location",
+        "opening_times"
+      ],
+      "additionalProperties": false
+    },
+    "Type": {
+      "title": "Type",
+      "description": "An enumeration.",
+      "enum": [
+        "cancelled_election",
+        "voter_id"
+      ]
+    },
+    "Notification": {
+      "title": "Notification",
+      "type": "object",
+      "properties": {
+        "title": {
+          "title": "Title",
+          "type": "string"
+        },
+        "type": {
+          "description": "Type of notification",
+          "allOf": [
+            {
+              "$ref": "#/definitions/Type"
+            }
+          ]
+        },
+        "detail": {
+          "title": "Detail",
+          "type": "string"
+        },
+        "url": {
+          "title": "Url",
+          "type": "string"
+        }
+      },
+      "required": [
+        "title",
+        "type",
+        "detail",
+        "url"
+      ]
+    },
+    "VotingSystem": {
+      "title": "VotingSystem",
+      "type": "object",
+      "properties": {
+        "slug": {
+          "title": "Slug",
+          "description": "One of `AMS`, `FPTP`, `PR-CL`, `sv`, `STV`",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "description": "The name of this voting system (e.g: \"First-past-the-post\")",
+          "type": "string"
+        },
+        "uses_party_lists": {
+          "title": "Uses Party Lists",
+          "description": "True if this voting system uses party lists",
+          "default": false,
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "slug",
+        "name"
+      ]
+    },
+    "Husting": {
+      "title": "Husting",
+      "type": "object",
+      "properties": {
+        "title": {
+          "title": "Title",
+          "description": "Title of the event",
+          "type": "string"
+        },
+        "location": {
+          "title": "Location",
+          "description": "Address of the event",
+          "type": "string"
+        },
+        "url": {
+          "title": "Url",
+          "description": "URL to the event or event sign up page",
+          "type": "string"
+        },
+        "starts": {
+          "title": "Starts",
+          "description": "Start datetime",
+          "type": "string",
+          "format": "date-time"
+        },
+        "ends": {
+          "title": "Ends",
+          "description": "End datetime",
+          "type": "string",
+          "format": "date-time"
+        },
+        "postevent_url": {
+          "title": "Postevent Url",
+          "description": "Any post-event URL, e.g a YouTube recording of the event",
+          "type": "string"
+        }
+      },
+      "required": [
+        "title",
+        "location"
+      ]
+    },
+    "Party": {
+      "title": "Party",
+      "type": "object",
+      "properties": {
+        "party_id": {
+          "title": "Party Id",
+          "type": "string"
+        },
+        "party_name": {
+          "title": "Party Name",
+          "type": "string"
+        }
+      },
+      "required": [
+        "party_id",
+        "party_name"
+      ]
+    },
+    "PreviousPartyAffiliation": {
+      "title": "PreviousPartyAffiliation",
+      "type": "object",
+      "properties": {
+        "party_id": {
+          "title": "Party Id",
+          "type": "string"
+        },
+        "party_name": {
+          "title": "Party Name",
+          "type": "string"
+        }
+      },
+      "required": [
+        "party_id",
+        "party_name"
+      ]
+    },
+    "Leaflet": {
+      "title": "Leaflet",
+      "type": "object",
+      "properties": {
+        "leaflet_id": {
+          "title": "Leaflet Id",
+          "description": "The electionleaflets.org ID for this leaflet",
+          "type": "number"
+        },
+        "thumb_url": {
+          "title": "Thumb Url",
+          "description": "URL to the thumbnail image of this leaflet",
+          "type": "string"
+        },
+        "leaflet_url": {
+          "title": "Leaflet Url",
+          "description": "URL to the leaflet page on electionleaflets.org",
+          "type": "string"
+        }
+      },
+      "required": [
+        "leaflet_id",
+        "thumb_url",
+        "leaflet_url"
+      ]
+    },
+    "Person": {
+      "title": "Person",
+      "type": "object",
+      "properties": {
+        "ynr_id": {
+          "title": "Ynr Id",
+          "type": "number"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "absolute_url": {
+          "title": "Absolute Url",
+          "description": "Link for more (human-readable) information about this candidate",
+          "type": "string"
+        },
+        "email": {
+          "title": "Email",
+          "description": "Email address for this candidate, if we hold it",
+          "type": "string"
+        },
+        "photo_url": {
+          "title": "Photo Url",
+          "description": "URL for a photo of this candidate, if we hold one",
+          "type": "string"
+        },
+        "leaflets": {
+          "title": "Leaflets",
+          "description": "Leaflets uploaded to electionleaflets.org and tagged with this person",
+          "default": [],
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Leaflet"
+          }
+        }
+      },
+      "required": [
+        "ynr_id",
+        "name"
+      ]
+    },
+    "Candidate": {
+      "title": "Candidate",
+      "type": "object",
+      "properties": {
+        "list_position": {
+          "title": "List Position",
+          "description": "Numeric position in party list. This value is only relevant to elections using party lists. It will always be null in First-Past-The-post elections.",
+          "type": "integer"
+        },
+        "party": {
+          "$ref": "#/definitions/Party"
+        },
+        "previous_party_affiliations": {
+          "title": "Previous Party Affiliations",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/PreviousPartyAffiliation"
+          }
+        },
+        "person": {
+          "$ref": "#/definitions/Person"
+        }
+      },
+      "required": [
+        "party",
+        "previous_party_affiliations",
+        "person"
+      ]
+    },
+    "Ballot": {
+      "title": "Ballot",
+      "type": "object",
+      "properties": {
+        "ballot_paper_id": {
+          "title": "Ballot Paper Id",
+          "description": "Identifier for this ballot",
+          "type": "string"
+        },
+        "ballot_title": {
+          "title": "Ballot Title",
+          "description": "Friendly name for this ballot",
+          "type": "string"
+        },
+        "ballot_url": {
+          "title": "Ballot Url",
+          "description": "API link for more detailed info about this ballot from the /elections endpoint",
+          "type": "string"
+        },
+        "poll_open_date": {
+          "title": "Poll Open Date",
+          "description": "Polling day for this ballot  (ISO 8601)",
+          "type": "string",
+          "format": "date"
+        },
+        "elected_role": {
+          "title": "Elected Role",
+          "description": "Name of the role the winner(s) of this election will assume",
+          "type": "string"
+        },
+        "metadata": {
+          "title": "Metadata",
+          "description": "Object containing information about special conditions for the user to be aware about (e.g: cancelled elections, voter id pilot). (details TBC)",
+          "default": {},
+          "type": "object"
+        },
+        "cancelled": {
+          "title": "Cancelled",
+          "description": "True if this ballot has been cancelled",
+          "type": "boolean"
+        },
+        "replaced_by": {
+          "title": "Replaced By",
+          "description": "If a ballot has been cancelled (cancelled = true) and rescheduled for a later date, this key will hold the ballot_paper_id of the ballot that replaces it.",
+          "type": "string"
+        },
+        "replaces": {
+          "title": "Replaces",
+          "description": "If this ballot replaces another cancelled ballot, this key will hold the ballot_paper_id of the ballot that it replaces.",
+          "type": "string"
+        },
+        "election_id": {
+          "title": "Election Id",
+          "description": "Identifier for this ballot's parent election group",
+          "type": "string"
+        },
+        "election_name": {
+          "title": "Election Name",
+          "description": "Friendly name for this ballot's parent election group",
+          "type": "string"
+        },
+        "post_name": {
+          "title": "Post Name",
+          "description": "Name of the division or post the winner(s) of this election will represent",
+          "type": "string"
+        },
+        "candidates_verified": {
+          "title": "Candidates Verified",
+          "description": "True if the list of candidates for this election has been confirmed against the nomination papers for this ballot. If this property is False, the candidate list is provisional or unconfirmed.",
+          "type": "boolean"
+        },
+        "voting_system": {
+          "title": "Voting System",
+          "description": "The voting system used in this election",
+          "allOf": [
+            {
+              "$ref": "#/definitions/VotingSystem"
+            }
+          ]
+        },
+        "hustings": {
+          "title": "Hustings",
+          "description": "Hustings related to this election",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Husting"
+          }
+        },
+        "seats_contested": {
+          "title": "Seats Contested",
+          "type": "number"
+        },
+        "candidates": {
+          "title": "Candidates",
+          "description": "Array of candidate objects describing candidates that will appear on this ballot paper. In an election which uses party lists, the `candidates` array is sorted by party and `list_position` within parties. For other election types it is sorted alphabetically by candidate name.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Candidate"
+          }
+        },
+        "wcivf_url": {
+          "title": "Wcivf Url",
+          "description": "Link for more (human-readable) information about this ballot",
+          "type": "string"
+        }
+      },
+      "required": [
+        "ballot_paper_id",
+        "ballot_url",
+        "elected_role",
+        "election_id",
+        "seats_contested"
+      ]
+    },
+    "Date": {
+      "title": "Date",
+      "type": "object",
+      "properties": {
+        "date": {
+          "title": "Date",
+          "description": "Polling day on which an election will occur",
+          "type": "string"
+        },
+        "polling_station": {
+          "title": "Polling Station",
+          "description": "Results for polling station search",
+          "allOf": [
+            {
+              "$ref": "#/definitions/PollingStation"
+            }
+          ]
+        },
+        "advance_voting_station": {
+          "title": "Advance Voting Station",
+          "description": "Advance Voting Stations",
+          "allOf": [
+            {
+              "$ref": "#/definitions/AdvanceVotingStation"
+            }
+          ]
+        },
+        "notifications": {
+          "title": "Notifications",
+          "description": "Array of notifications to be shown to the user about special conditions to be aware of on this date.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Notification"
+          }
+        },
+        "ballots": {
+          "title": "Ballots",
+          "description": "List of ballots happening on this date. It is possible for more than one ballot to occur on the same date. For example, a user may vote in a local council election and mayoral election on the same day.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Ballot"
+          }
+        }
+      }
+    },
+    "ElectoralServices": {
+      "title": "ElectoralServices",
+      "type": "object",
+      "properties": {
+        "council_id": {
+          "title": "Council Id",
+          "description": "GSS code for this council",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "description": "Name of this council",
+          "type": "string"
+        },
+        "nation": {
+          "title": "Nation",
+          "description": "Name of nation",
+          "type": "string"
+        },
+        "address": {
+          "title": "Address",
+          "description": "Contact address for this council",
+          "type": "string"
+        },
+        "postcode": {
+          "title": "Postcode",
+          "description": "Postcode component of contact address for this council",
+          "type": "string"
+        },
+        "email": {
+          "title": "Email",
+          "description": "Contact email address for this council's Electoral Services team",
+          "type": "string",
+          "format": "email"
+        },
+        "phone": {
+          "title": "Phone",
+          "description": "Telephone number for this council's Electoral Services team",
+          "type": "string"
+        },
+        "website": {
+          "title": "Website",
+          "description": "URL for this council's website",
+          "minLength": 1,
+          "maxLength": 2083,
+          "format": "uri",
+          "type": "string"
+        }
+      },
+      "required": [
+        "council_id",
+        "name",
+        "nation",
+        "address",
+        "postcode",
+        "email",
+        "phone",
+        "website"
+      ]
+    },
+    "Registration": {
+      "title": "Registration",
+      "type": "object",
+      "properties": {
+        "address": {
+          "title": "Address",
+          "description": "Contact address for this council",
+          "type": "string"
+        },
+        "postcode": {
+          "title": "Postcode",
+          "description": "Postcode component of contact address for this council",
+          "type": "string"
+        },
+        "email": {
+          "title": "Email",
+          "description": "Contact email address for this council's Electoral Services team",
+          "type": "string",
+          "format": "email"
+        },
+        "phone": {
+          "title": "Phone",
+          "description": "Telephone number for this council's Electoral Services team",
+          "type": "string"
+        },
+        "website": {
+          "title": "Website",
+          "description": "URL for this council's website",
+          "minLength": 1,
+          "maxLength": 2083,
+          "format": "uri",
+          "type": "string"
+        }
+      },
+      "required": [
+        "address",
+        "postcode",
+        "email",
+        "phone",
+        "website"
+      ]
+    },
+    "Feature_Point__Dict_": {
+      "title": "Feature[Point, Dict]",
+      "description": "Feature Model",
+      "type": "object",
+      "properties": {
+        "type": {
+          "title": "Type",
+          "const": "Feature",
+          "type": "string"
+        },
+        "geometry": {
+          "$ref": "#/definitions/Point"
+        },
+        "properties": {
+          "title": "Properties",
+          "type": "object"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "bbox": {
+          "title": "Bbox",
+          "anyOf": [
+            {
+              "type": "array",
+              "minItems": 4,
+              "maxItems": 4,
+              "items": [
+                {
+                  "anyOf": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "integer"
+                    }
+                  ]
+                },
+                {
+                  "anyOf": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "integer"
+                    }
+                  ]
+                },
+                {
+                  "anyOf": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "integer"
+                    }
+                  ]
+                },
+                {
+                  "anyOf": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "integer"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "array",
+              "minItems": 6,
+              "maxItems": 6,
+              "items": [
+                {
+                  "anyOf": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "integer"
+                    }
+                  ]
+                },
+                {
+                  "anyOf": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "integer"
+                    }
+                  ]
+                },
+                {
+                  "anyOf": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "integer"
+                    }
+                  ]
+                },
+                {
+                  "anyOf": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "integer"
+                    }
+                  ]
+                },
+                {
+                  "anyOf": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "integer"
+                    }
+                  ]
+                },
+                {
+                  "anyOf": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "integer"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+}
